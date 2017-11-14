@@ -1,303 +1,794 @@
-#include<iostream>
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
 using namespace std;
 
 template<typename T>
 class Sequence {
 public:
+virtual void Random(int number)=0;
 virtual int GetLength()=0;
 virtual T GetFirst()=0;
+virtual void InsertionSort()=0;
+virtual void TestInit()=0;
+virtual int TestCheck()=0;
 virtual T GetLast()=0;
+virtual void QuickSort()=0;
 virtual T Get(int index)=0;
-virtual Remove(T elem)=0;
-virtual Append(T elem)=0;
-virtual Prepend(T elem)=0;
-virtual InsertAt(int pos,T elem)=0;
+virtual void Remove(T elem)=0;
+virtual void Append(T elem)=0;
+virtual void Prepend(T elem)=0;
+virtual void InsertAt(int pos,T elem)=0;
 virtual Sequence<T> *GetSubsequence(int i, int j)=0;
-virtual print()=0;
+virtual void print()=0;
 };
 
 template<typename T>
 struct node{
-T data;
-struct node *next=nullptr;
+  T data;
+  struct node *next=NULL;
 };
 
 template<typename T>
-class List : public Sequence<T>
+void my_realloc(T *arr, int size, int new_size)
+{
+    T *new_arr = new T [new_size];
+    size = size < new_size ? size : new_size;
+
+    for (int i = 0; i < size; ++i)
+        new_arr[i] = arr[i];
+    arr = new_arr;
+};
+
+template <typename T> class Array : public Sequence<T>
+{
+private:
+    T *arr;
+    int num;
+public:
+Array(){
+    arr=new T;
+    num=0;
+};
+//_______________________________QUICKSORT________________________________//
+void QuickSort(){
+  quickSort(arr,0,num-1);
+}
+void quickSort(T *arr, int left, int right) {
+      int i = left, j = right;
+      int tmp;
+      int pivot = arr[(left + right) / 2];
+
+      while (i <= j) {
+            while (arr[i] < pivot)
+                  i++;
+            while (arr[j] > pivot)
+                  j--;
+            if (i <= j) {
+                  tmp = arr[i];
+                  arr[i] = arr[j];
+                  arr[j] = tmp;
+                  i++;
+                  j--;
+            }
+      };
+
+      if (left < j)
+            quickSort(arr, left, j);
+      if (i < right)
+            quickSort(arr, i, right);
+}
+
+//_________________________________INSERTIONSORT_________________________________//
+void InsertionSort(){
+  insertionSort(arr,num);
+}
+void insertionSort(T *arr, int n)
+{
+   int i, key, j;
+   for (i = 1; i < n; i++)
+   {
+       key = arr[i];
+       j = i-1;
+
+       while (j >= 0 && arr[j] > key)
+       {
+           arr[j+1] = arr[j];
+           j = j-1;
+       }
+       arr[j+1] = key;
+   }
+}
+///////////////////////////////////////////////////////////////////////////
+void Append(T elem){
+        my_realloc(arr,num,num+1);
+            *(arr+num)=elem;
+            num++;};
+
+void print(){
+    int i;
+        for(i=0;i<num;++i)
+        cout << *(arr+i) << "\n";};
+
+int GetLength(){return num;};
+
+T GetFirst(){return *arr;};
+
+T GetLast(){return*(arr+num-1);};
+
+T Get(int index){return *(arr+index);};
+
+int getIsEmpty(){return num;}
+
+Array<T> *GetSubsequence(int i, int j){
+    if((i>j) or (j<0) or (j>num-1)){
+		cout << "INDEX ERROR\n";
+		return 0;}
+    int k;
+    Array<T> *b;
+    b=new Array<T>;
+        for(k=i;k<j+1;++k)
+			b->Append(*(arr+k));
+    return b;
+};
+
+void Remove(T elem){int i,j=0;
+for(i=0;i<num;++i)
+    if(*(arr+i)==elem){
+        for(j=i;j<num-1;++j)*(arr+j)=*(arr+j+1);
+            my_realloc(arr,num,num-1);
+            --num;}
+};
+
+void TestInit(){
+  int i;
+  arr=new T[100];
+  num=100;
+  for(i=num;i>0;--i)
+    arr[100-i]=i;
+}
+
+void Random(int number){
+  int i;
+  num=number;
+  arr=new T[number];
+  for(i=0;i<number;++i)
+    arr[i]=rand()%100;
+}
+
+int TestCheck(){
+  int i;
+  int flag=1;
+  for(i=0;i<100;++i)
+    if (arr[i]!=i+1) flag=0;
+  return flag;
+}
+void Prepend(T elem){
+    int i;
+    my_realloc(arr,num,num+1);
+        for(i=num+1;i>0;--i)
+        *(arr+i)=*(arr+i-1);
+    *(arr)=elem;
+num++;};
+
+void InsertAt(int pos,T elem){
+    if(pos>num-1){
+		cout << "INDEX ERROR\n";
+		return ;
+	}
+    int i;
+    if (pos==0) Prepend(elem);
+if (pos==num) Append(elem);
+if ((pos!=0) and (pos!=num) and (num>pos)){
+    my_realloc(arr,num,num+1);
+        for(i=num;i>pos-1;--i)
+        *(arr+i)=*(arr+i-1);
+ *(arr+pos)=elem;
+num++;}
+};
+};
+template<typename T> class List : public Sequence<T>
 {
 private:
     struct node<T> *ptr;
-    int num=0;
+    int num;
 public:
 
-List(){ptr=nullptr;};
 
-~List(){ptr=(struct node<T>*)malloc(0);}
+List(){ptr=NULL;num=0;};
+
+~List(){delete ptr;}
 
 int GetLength(){return num;};
 
 T GetFirst(){return ptr->data;};
 
 T GetLast(){
-        struct node<T> *temp=ptr;
-        int i;
-    for(i=1;i<num;i++)temp=temp->next;
-        return temp->data;}
+	struct node<T> *temp=ptr;
+	int i;
+	for(i=1;i<num;i++)
+		temp=temp->next;
+	return temp->data;
+}
 
+void FrontBackSplit(struct node<T>* source,
+          struct node<T>** frontRef, struct node<T>** backRef)
+{
+  struct node<T>* fast;
+  struct node<T>* slow;
+  if (source==NULL || source->next==NULL)
+  {
+    /* length < 2 cases */
+    *frontRef = source;
+    *backRef = NULL;
+  }
+  else
+  {
+    slow = source;
+    fast = source->next;
+
+    while (fast != NULL)
+    {
+      fast = fast->next;
+      if (fast != NULL)
+      {
+        slow = slow->next;
+        fast = fast->next;
+      }
+    }
+
+    *frontRef = source;
+    *backRef = slow->next;
+    slow->next = NULL;
+  }
+}
+//________________________________QUICKSORT_____________________________________//
+struct node<T> *getTail(struct node<T> *cur)
+{
+    while (cur != NULL && cur->next != NULL)
+        cur = cur->next;
+    return cur;
+}
+
+struct node<T> *partition(struct node<T> *head, struct node<T> *end,
+                       struct node<T> **newHead, struct node<T> **newEnd)
+{
+    struct node<T> *pivot = end;
+    struct node<T> *prev = NULL, *cur = head, *tail = pivot;
+
+    while (cur != pivot)
+    {
+        if (cur->data < pivot->data)
+        {
+            if ((*newHead) == NULL)
+                (*newHead) = cur;
+
+            prev = cur;
+            cur = cur->next;
+        }
+        else // If cur node is greater than pivot
+        {
+            if (prev)
+                prev->next = cur->next;
+            struct node<T> *tmp = cur->next;
+            cur->next = NULL;
+            tail->next = cur;
+            tail = cur;
+            cur = tmp;
+        }
+    }
+
+
+    if ((*newHead) == NULL)
+        (*newHead) = pivot;
+
+    (*newEnd) = tail;
+
+    return pivot;
+}
+
+
+struct node<T> *quickSortRecur(struct node<T> *head, struct node<T> *end)
+{
+    if (!head || head == end)
+        return head;
+
+    struct node<T> *newHead = NULL, *newEnd = NULL;
+
+    struct node<T> *pivot = partition(head, end, &newHead, &newEnd);
+
+    if (newHead != pivot)
+    {
+        struct node<T> *tmp = newHead;
+        while (tmp->next != pivot)
+            tmp = tmp->next;
+        tmp->next = NULL;
+
+        newHead = quickSortRecur(newHead, tmp);
+
+        tmp = getTail(newHead);
+        tmp->next =  pivot;
+    }
+
+    pivot->next = quickSortRecur(pivot->next, newEnd);
+
+    return newHead;
+}
+
+void QuickSort()
+{
+    struct node<T> **headRef=&ptr;
+    (*headRef) = quickSortRecur(*headRef, getTail(*headRef));
+    return;
+}
+//______________________________________INSERTIONSORT__________________________//
+void sortedInsert(struct node<T>** head_ref, struct node<T>* new_node)
+{
+    struct node<T>* current;
+    if (*head_ref == NULL || (*head_ref)->data >= new_node->data)
+    {
+        new_node->next = *head_ref;
+        *head_ref = new_node;
+    }
+    else
+    {
+        current = *head_ref;
+        while (current->next!=NULL &&
+               current->next->data < new_node->data)
+        {
+            current = current->next;
+        }
+        new_node->next = current->next;
+        current->next = new_node;
+    }
+}
+
+void InsertionSort()
+{
+    struct node<T> **head_ref=&ptr;
+    struct node<T> *sorted = NULL;
+
+    struct node<T> *current = *head_ref;
+    while (current != NULL)
+    {
+        struct node<T> *next = current->next;
+
+        sortedInsert(&sorted, current);
+
+        current = next;
+    }
+
+    *head_ref = sorted;
+}
+///////////////////////////////////////////////////////////////////////////
 T Get(int pos){
-        struct node<T> *temp=ptr;
-        int i;
-        if((pos>=0) and (pos<num)){
-    for(i=0;i<pos;i++)temp=temp->next;
-        return temp->data;}
-        else{ cout << "ERROR\n";return 0;
+	struct node<T> *temp=ptr;
+	int i;
+	if((pos>=0) and (pos<num)){
+	for(i=0;i<pos;i++)
+		temp=temp->next;
+	return temp->data;}
+	else{ cout << "ERROR\n";return 0;
         }
 }
 
-int getIsEmpty(){
-    bool boo;
-if (num!=0) boo=true;
-    else boo=false;
-    return boo;}
+void TestInit(){
+  int i;
+  ptr=NULL;
+  for(i=0;i<100;++i)
+    Prepend(i);
+}
 
-Prepend(T elem){
-        struct node<T> *temp=ptr;
-            ptr=(struct node<T> *)malloc(sizeof(struct node<T>));
-                ptr->data=elem;
-                ptr->next=nullptr;
-                if(num!=0)ptr->next=temp;
-            ++num;}
+int TestCheck(){
+  int i;
+  int flag=1;
+  for(i=0;i<100;i++){
+    if(Get(i)!=i) flag=0;
+  }
+  return flag;
+}
 
-print(){
+int getIsEmpty(){return num;}
+
+void Prepend(T elem){
+	struct node<T> *temp=ptr;
+	ptr=new node <T>;
+    ptr->data=elem;
+    ptr->next=NULL;
+    if(num!=0)
+		ptr->next=temp;
+    ++num;}
+
+void print(){
     struct node<T> *temp=ptr;
-    while (temp!=nullptr){
+    while (temp!=NULL){
         cout << (temp->data) << "\n";
         temp=temp->next;
     };
         }
 
-Append(T elem){
-        struct node<T> *temp=ptr;
-        struct node<T> *temp1;
-        if(num==0)Prepend(elem); else{
-        while (temp->next!=nullptr)
+void Append(T elem){
+    struct node<T> *temp=ptr;
+    struct node<T> *temp1;
+    if(num==0)
+		Prepend(elem);
+	else{
+        while (temp->next!=NULL)
             temp=temp->next;
-        temp1=(struct node<T> *)malloc(sizeof(struct node<T>));
+        temp1=new node <T>;
         temp->next=temp1;
         temp1->data=elem;
-        temp1->next=nullptr;
+        temp1->next=NULL;
         num++;
         }
 };
 
+void Random(int number){
+  int i;
+  T elem;
+  for(i=0;i<number;++i){
+    elem=rand()%100;
+    Prepend(elem);
+  }
+}
 Sequence<T> *GetSubsequence(int i, int j){
+    if((i>j) or (j<0) or (j>num-1)){
+		cout << "INDEX ERROR\n";
+		return 0;}
     int k=0;
-    List <T> b;
+    List <T> *b;
+    b=new List<T>;
     struct node<T> *temp=ptr;
     while(k!=i){++k;temp=temp->next;}
         for(i=0;i<j-k+1;++i){
-                b.Append(temp->data);
+                b->Append(temp->data);
                 temp=temp->next;}
-        b.print();
+        b->print();
+        return b;
 };
 
-InsertAt(int pos,T elem){
+void InsertAt(int pos,T elem){
+    if(pos>num-1){
+		cout << "INDEX ERROR\n";
+		return ;
+	}
     int i;
     struct node<T> *temp=ptr;
     struct node<T> *temp1;
     struct node<T> *temp2;
     if (pos!=0){
-            for(i=1;i<pos-1;++i)temp=temp->next;
-    temp1=temp->next;
-    temp2=(struct node<T> *)malloc(sizeof(struct node<T>));
-    temp->next=temp2;
-    temp2->data=elem;
-    temp2->next=temp1;
-    ++num;}
-    if (pos==0) Prepend(elem);
-    if (pos==num-1)Append(elem);
+            for(i=1;i<pos-1;++i)
+				temp=temp->next;
+		temp1=temp->next;
+		temp2=new node <T>;
+		temp->next=temp2;
+		temp2->data=elem;
+		temp2->next=temp1;
+		++num;
+		}
+    if (pos==0)
+		Prepend(elem);
+    if (pos==num-1)
+		Append(elem);
 };
 
-Remove(T elem){
+void Remove(T elem){
     int i;
-struct node<T> *temp=ptr;
-struct node<T> *temp1;
-for(i=1;i<num;++i){
-        if(temp->data==elem)ptr=temp->next;
+	struct node<T> *temp=ptr;
+	struct node<T> *temp1;
+	for(i=1;i<num;++i){
+        if((i==1) and (temp->data==elem))
+			ptr=temp->next;
         if(temp->next->data==elem){
             temp1=temp->next;
             temp->next=temp->next->next;
-            temp1=(struct node<T> *)malloc(sizeof(0));
+            delete temp1;
         }
         temp=temp->next;
     };
     --num;
 }
 };
-
-
 template<typename T>
-class Array : public Sequence<T>
-{
-private:
-    T *mass;
-    int num=0;
-public:
-Array(){
-    mass=(T*)malloc(sizeof(T));
-}
-
-~Array(){
-    mass=(T*)malloc(0);
-}
-
-Append(T elem){
-        mass=(T*)realloc(mass,sizeof(T)*(num+1));
-            *(mass+num)=elem;
-            num++;}
-
-print(){
-    int i;
-        for(i=0;i<num;++i)
-        cout << *(mass+i) << "\n";}
-
-int GetLength(){return num;};
-
-T GetFirst(){return *mass;};
-
-T GetLast(){return*(mass+num-1);};
-
-T Get(int index){return *(mass+index);};
-
-int getIsEmpty(){return num;}
-
-Array<T> *GetSubsequence(int i, int j){
-    int k;
-    Array<T> b;
-        for(k=i-1;k<j;++k){b.Append(*(mass+k));}
-    return &b;
-};
-
-Remove(T elem){int i,j=0;
-for(i=0;i<num;++i)
-    if(*(mass+i)==elem){
-        for(j=i;j<num-1;++j)*(mass+j)=*(mass+j+1);
-            mass=(T*)realloc(mass,sizeof(T)*(num-1));
-            --num;}
-};
-
-Prepend(T elem){
-    int i;
-    mass=(T*)realloc(mass,sizeof(T)*(num+1));
-        for(i=num+1;i>0;--i)
-        *(mass+i)=*(mass+i-1);
-    *(mass)=elem;
-num++;}
-
-InsertAt(int pos,T elem){
-    int i;
-    if (pos==0) Prepend(elem);
-if (pos==num) Append(elem);
-if ((pos!=0) and (pos!=num) and (num>pos)){
-    mass=(T*)realloc(mass,sizeof(T)*(num+1));
-        for(i=num;i>pos-1;--i)
-        *(mass+i)=*(mass+i-1);
- *(mass+pos)=elem;
-num++;}
-
-}
-};
-
-template<typename T>
-Test(Sequence <T> *a){
-    Sequence <T> *b;
+void Test(Sequence <T> *a){
     bool flag=1;
-    cout << "Äëèíà íà÷àëüíîé ïîñëåäîâàòåëüíîñòè = " << a->GetLength();
-    if(a->GetLength()==0) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Äîáàâëÿåì ýëåìåíò 51\n";
+    float t=0;
+    cout << "Ð”Ð»Ð¸Ð½Ð° Ð½Ð°Ñ‡Ð°Ð»ÑŒÐ½Ð¾Ð¹ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLength();
+    if(a->GetLength()==0)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "Ð”Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ 51\n";
     a->Append(51);
-    cout << "Äëèíà ïîñëåäîâàòåëüíîñòè = " << a->GetLength();
-    if(a->GetLength()==1) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïåðâûé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->GetFirst();
-    if(a->GetFirst()==51) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïîñëåäíèé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->GetLast();
-    if(a->GetLast()==51) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Íóëåâîé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->Get(0);
-    if(a->Get(0)==51) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Äîáàâëÿåì ýëåìåíò 33 â íà÷àëî\n";
+    cout << "Ð”Ð»Ð¸Ð½Ð° Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLength();
+    if(a->GetLength()==1)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐµÑ€Ð²Ñ‹Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetFirst();
+    if(a->GetFirst()==51)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐ¾ÑÐ»ÐµÐ´Ð½Ð¸Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLast();
+    if(a->GetLast()==51)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐÑƒÐ»ÐµÐ²Ð¾Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->Get(0);
+    if(a->Get(0)==51)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "Ð”Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ 33 Ð² Ð½Ð°Ñ‡Ð°Ð»Ð¾\n";
     a->Prepend(33);
-    cout << "Äëèíà ïîñëåäîâàòåëüíîñòè = " << a->GetLength();
-    if(a->GetLength()==2) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïåðâûé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->GetFirst();
-    if(a->GetFirst()==33) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïîñëåäíèé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->GetLast();
-    if(a->GetLast()==51) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïåðâûé ïî èíäåêñó ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->Get(1);
-    if(a->Get(1)==51) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Äîáàâëÿåì ýëåìåíò 12 íà ìåñòî c èíäåêñîì 1\n";
+    cout << "Ð”Ð»Ð¸Ð½Ð° Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLength();
+    if(a->GetLength()==2)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐµÑ€Ð²Ñ‹Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetFirst();
+    if(a->GetFirst()==33)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐ¾ÑÐ»ÐµÐ´Ð½Ð¸Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLast();
+    if(a->GetLast()==51)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐµÑ€Ð²Ñ‹Ð¹ Ð¿Ð¾ Ð¸Ð½Ð´ÐµÐºÑÑƒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->Get(1);
+    if(a->Get(1)==51)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "Ð”Ð¾Ð±Ð°Ð²Ð»ÑÐµÐ¼ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ 12 Ð½Ð° Ð¼ÐµÑÑ‚Ð¾ c Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð¼ 1\n";
     a->InsertAt(1,12);
-    cout << "Äëèíà ïîñëåäîâàòåëüíîñòè = " << a->GetLength();
-    if(a->GetLength()==3) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïåðâûé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->GetFirst();
-    if(a->GetFirst()==33) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïîñëåäíèé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->GetLast();
-    if(a->GetLast()==51) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ýëåìåíò ïîñëåäîâàòåëüíîñòè ñ èíäåêñîì 1 = " << a->Get(1);
-    if(a->Get(1)==12) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Âûäåëÿåì ïîäïîñëåäîâàòåëüíîñòü ñ èíäåêñàìè 1-2\n";
+    cout << "Ð”Ð»Ð¸Ð½Ð° Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLength();
+    if(a->GetLength()==3)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐµÑ€Ð²Ñ‹Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetFirst();
+    if(a->GetFirst()==33)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐ¾ÑÐ»ÐµÐ´Ð½Ð¸Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLast();
+    if(a->GetLast()==51)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "Ð­Ð»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ Ñ Ð¸Ð½Ð´ÐµÐºÑÐ¾Ð¼ 1 = " << a->Get(1);
+    if(a->Get(1)==12)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "Ð’Ñ‹Ð´ÐµÐ»ÑÐµÐ¼ Ð¿Ð¾Ð´Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒ Ñ Ð¸Ð½Ð´ÐµÐºÑÐ°Ð¼Ð¸ 1-2\n";
     a->Remove(33);
-    cout << "Äëèíà ïîñëåäîâàòåëüíîñòè = " << a->GetLength();
-    if(a->GetLength()==2) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïåðâûé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->Get(0) << "\nÂòîðîé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->Get(1);
-    if((a->Get(1)==51) and (a->Get(0)==12)) cout << " - Ïðàâèëüíî\n"; else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Óäàëÿåì ýëåìåíò 51\n";
+    cout << "Ð”Ð»Ð¸Ð½Ð° Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLength();
+    if(a->GetLength()==2)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐµÑ€Ð²Ñ‹Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->Get(0) << "\nÐ’Ñ‚Ð¾Ñ€Ð¾Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->Get(1);
+    if((a->Get(1)==51) and (a->Get(0)==12))
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "Ð£Ð´Ð°Ð»ÑÐµÐ¼ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ 51\n";
     a->Remove(51);
-    cout << "Äëèíà ïîñëåäîâàòåëüíîñòè = " << a->GetLength();
-    if(a->GetLength()==1) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïåðâûé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->GetFirst();
-    if(a->GetFirst()==12) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    cout << "Ïîñëåäíèé ýëåìåíò ïîñëåäîâàòåëüíîñòè = " << a->GetLast();
-    if(a->GetLast()==12) cout << " - Ïðàâèëüíî\n";else{cout << " - Íåïðàâèëüíî\n";flag=0;}
-    if(flag==1) cout << "======ÒÅÑÒ ÏÐÎÉÄÅÍ ÓÑÏÅØÍÎ======"; else cout << "======ÒÅÑÒ HE ÏÐÎÉÄÅÍ======";
-};
+    cout << "Ð”Ð»Ð¸Ð½Ð° Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLength();
+    if(a->GetLength()==1)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐµÑ€Ð²Ñ‹Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetFirst();
+    if(a->GetFirst()==12)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+    else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+    cout << "ÐŸÐ¾ÑÐ»ÐµÐ´Ð½Ð¸Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸ = " << a->GetLast();
+    if(a->GetLast()==12)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾\n";
+		flag=0;}
+		a->Remove(12);
+		cout << "Ð¢ÐµÑÑ‚Ð¸Ñ€ÑƒÐµÐ¼ ÑÐ¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²ÐºÑƒ Ð²ÑÑ‚Ð°Ð²ÐºÐ°Ð¼Ð¸: ";
+		a->TestInit();
+		t=clock();
+		a->InsertionSort();
+		if(a->TestCheck()==1)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾ ";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾ ";
+		flag=0;}
+		cout << "Ð’Ñ€ÐµÐ¼Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð°Ð»Ð³Ð¾Ñ€Ð¸Ñ‚Ð¼Ð° " << (clock()-t)/1000 << "c\n";
+		cout << "Ð¢ÐµÑÑ‚Ð¸Ñ€ÑƒÐµÐ¼ Ð±Ñ‹ÑÑ‚Ñ€ÑƒÑŽ ÑÐ¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²ÐºÑƒ: ";
+		a->TestInit();
+		t=clock();
+		a->QuickSort();
+		if(a->TestCheck()==1)
+		cout << " - ÐŸÑ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾ ";
+	else{
+		cout << " - ÐÐµÐ¿Ñ€Ð°Ð²Ð¸Ð»ÑŒÐ½Ð¾ ";
+		flag=0;}
+		cout << "Ð’Ñ€ÐµÐ¼Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð°Ð»Ð³Ð¾Ñ€Ð¸Ñ‚Ð¼Ð° " << (clock()-t)/1000 << "c\n";
+    if(flag==1) cout << "======Ð¢Ð•Ð¡Ð¢ ÐŸÐ ÐžÐ™Ð”Ð•Ð Ð£Ð¡ÐŸÐ•Ð¨ÐÐž======"; else cout << "======Ð¢Ð•Ð¡Ð¢ HE ÐŸÐ ÐžÐ™Ð”Ð•Ð======";
+}
 
 int main(){
-    setlocale(0,"Russian");
-    int e,d,z,f,u;
-Array<int> a;int c=0;
-List<int> b; int k=0;
-
-cout << "Ââåäèòå, ÷òî õîòèòå ñäåëàòü\n1)Ðàáîòàòü ñ ïîñëåäîâàòåëüíîñòüþ\n2)Ðàáîòàòü ñî ñïèñêîì\n3)Òåñòèðîâàòü ïðîãðàììó";
-
-cin >> e;
-if(e==1)do{
-cout << "Ââåäèòå, ÷òî õîòèòå ñäåëàòü\n1)Äîáàâèòü ýëåìåíò â êîíåö\n2)Äîáàâèòü ýëåìåíò â íà÷àëî\n3)Âûâåñòè äëèíó ïîñëåäîâàòåëüíîñòè\n4)Âûâåñòè ïåðâûé ýëåìåíò\n5)Âûâåñòè ïîñëåäíèé ýëåìåíò\n6)Âûâåñòè ýëåìåíò ïî íîìåðó\n7)Âñòàâèòü ýëåìåíò íà i ïîçèöèþ\n8)Óäàëèòü ýëåìåíò\n9)Âûäåëèòü ïîäïîñëåäîâàòåëüíîñòü\n10)Âûâåñòè ïîñëåäîâàòåëüíîñòü\n11)Çàâåðøèòü ïðîãðàììó\n";
-cin >> c;
-if (c==1){cin >> d;a.Append(d);};
-if (c==2){cin >> d;a.Prepend(d);}
-if (c==3){cout << a.GetLength() << "\n";};
-if (c==4){cout << a.GetFirst() << "\n";};
-if (c==5){cout << a.GetLast() << "\n";};
-if (c==6){cin >> d;cout <<a.Get(d);};
-if (c==7){cin >> z;cin >> u; a.InsertAt(z,u);};
-if (c==10){a.print();};
-if (c==8){cin >> d;a.Remove(d);};
-if (c==9){a.GetSubsequence(2,3);};
-}while (c<11);
-if (e==2) do {
-cout << "Ââåäèòå, ÷òî õîòèòå ñäåëàòü\n1)Äîáàâèòü ýëåìåíò â êîíåö\n2)Äîáàâèòü ýëåìåíò â íà÷àëî\n3)Âûâåñòè äëèíó ñïèñêà\n4)Âûâåñòè ïåðâûé ýëåìåíò\n5)Âûâåñòè ïîñëåäíèé ýëåìåíò\n6)Âûâåñòè ýëåìåíò ïî íîìåðó\n7)Âñòàâèòü ýëåìåíò íà i ïîçèöèþ\n8)Óäàëèòü ýëåìåíò\n9)Âûäåëèòü ïîäïîñëåäîâàòåëüíîñòü\n10)Âûâåñòè ñïèñîê\n11)Çàâåðøèòü ïðîãðàììó\n";
-cin >> c;
-if (c==1){cin >> z;b.Append(z);};
-if (c==2){cin >> z;b.Prepend(z);}
-if (c==3){cout << b.GetLength() << "\n";};
-if (c==4){cout << b.GetFirst() << "\n";};
-if (c==5){cout << b.GetLast() << "\n";};
-if (c==6){cin >> z;cout <<b.Get(z);};
-if (c==7){cin >> f;cin>> u;b.InsertAt(z,u);};
-if (c==10){b.print();};
-if (c==8){cin >> z;b.Remove(z);};
-if (c==9){a.GetSubsequence(2,3);};
-}while (c<11);
-if (e==3)Test(&a);
-return 0;
+    setlocale(LC_ALL,"Russian");
+  srand(time(NULL));
+	int e,d,f,g;
+	List<int> a;
+	Array<int> b;
+	float t;
+	int c=0;
+	cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ, Ñ Ñ‡ÐµÐ¼ Ñ…Ð¾Ñ‚Ð¸Ñ‚Ðµ Ñ€Ð°Ð±Ð¾Ñ‚Ð°Ñ‚ÑŒ\n1)ÐœÐ°ÑÑÐ¸Ð²\n2)Ð¡Ð¿Ð¸ÑÐ¾Ðº\n";
+	cin >> g;
+	switch(g){
+	case 1:
+	cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ, Ñ‡Ñ‚Ð¾ Ñ…Ð¾Ñ‚Ð¸Ñ‚Ðµ ÑÐ´ÐµÐ»Ð°Ñ‚ÑŒ\n1)Ð Ð°Ð±Ð¾Ñ‚Ð°Ñ‚ÑŒ Ñ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒÑŽ\n2)Ð¢ÐµÑÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ñƒ\n";
+		cin >> e;
+		if(e==1)do{
+		cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ, Ñ‡Ñ‚Ð¾ Ñ…Ð¾Ñ‚Ð¸Ñ‚Ðµ ÑÐ´ÐµÐ»Ð°Ñ‚ÑŒ\n1)Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð² Ð½Ð°Ñ‡Ð°Ð»Ð¾\n2)Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð² ÐºÐ¾Ð½ÐµÑ†\n3)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ Ð´Ð»Ð¸Ð½Ñƒ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸\n4)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ Ð¿ÐµÑ€Ð²Ñ‹Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚\n5)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½Ð¸Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚\n6)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ Ð½Ð¾Ð¼ÐµÑ€Ñƒ\n7)Ð’ÑÑ‚Ð°Ð²Ð¸Ñ‚ÑŒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð½Ð° i Ð¿Ð¾Ð·Ð¸Ñ†Ð¸ÑŽ\n8)Ð£Ð´Ð°Ð»Ð¸Ñ‚ÑŒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚\n9)Ð’Ñ‹Ð´ÐµÐ»Ð¸Ñ‚ÑŒ Ð¿Ð¾Ð´Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒ\n10)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒ\n11)Ð¡Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¼ÐµÑ‚Ð¾Ð´Ð¾Ð¼ Ð²ÑÑ‚Ð°Ð²Ð¾Ðº\n12)Ð‘Ñ‹ÑÑ‚Ñ€Ð°Ñ ÑÐ¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²ÐºÐ°\n13)Ð¡Ð»ÑƒÑ‡Ð°Ð¹Ð½Ð°Ñ Ð³ÐµÐ½ÐµÑ€Ð°Ñ†Ð¸Ñ Ñ‡Ð¸ÑÐµÐ»\n14)Ð—Ð°Ð²ÐµÑ€ÑˆÐ¸Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ñƒ\n";
+		cin >> c;
+		switch(c){
+		case 1:
+			cout << "Enter element\n";
+			cin >> d;
+			b.Prepend(d);
+			break;
+		case 2:
+			cout << "Enter element\n";
+			cin >> d;
+			b.Append(d);
+			break;
+		case 3:
+			cout << b.GetLength() << "\n";
+			break;
+		case 4:
+			cout << b.GetFirst() << "\n";
+			break;
+		case 5:
+			cout << b.GetLast() << "\n";
+			break;
+		case 6:
+			cout << "Enter index\n";
+			cin >> d;
+			cout << b.Get(d) << "\n";
+			break;
+		case 7:
+			cout << "Enter index\n";
+			cin >> d;
+			cout << "Enter element\n";
+			cin >> f;
+			b.InsertAt(d,f);
+			break;
+		case 8:
+			cin >> d;
+			b.Remove(d);
+			break;
+		case 9:
+			cout << "Enter start index\n";
+			cin >> d;
+			cout << "Enter end index\n";
+			cin >> f;
+			b.GetSubsequence(d,f);
+			break;
+		case 10:
+			b.print();
+			break;
+		case 11:
+			t=clock();
+			b.InsertionSort();
+			cout << "Ð’Ñ€ÐµÐ¼Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð°Ð»Ð³Ð¾Ñ€Ð¸Ñ‚Ð¼Ð° " << (clock()-t)/1000 << "c\n";
+			break;
+		case 12:
+			t=clock();
+			b.QuickSort();
+			cout << "Ð’Ñ€ÐµÐ¼Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð°Ð»Ð³Ð¾Ñ€Ð¸Ñ‚Ð¼Ð° " << (clock()-t)/1000 << "c\n";
+			break;
+		case 13:
+		  cout << "Enter number of elements\n";
+			cin >> d;
+			b.Random(d);
+			break;
+		}
+	}while (c<14);
+		if(e==2)Test(&b);
+	break;
+	case 2:
+		cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ, Ñ‡Ñ‚Ð¾ Ñ…Ð¾Ñ‚Ð¸Ñ‚Ðµ ÑÐ´ÐµÐ»Ð°Ñ‚ÑŒ\n1)Ð Ð°Ð±Ð¾Ñ‚Ð°Ñ‚ÑŒ Ñ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒÑŽ\n2)Ð¢ÐµÑÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ñƒ";
+		cin >> e;
+		if(e==1)do{
+		cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ, Ñ‡Ñ‚Ð¾ Ñ…Ð¾Ñ‚Ð¸Ñ‚Ðµ ÑÐ´ÐµÐ»Ð°Ñ‚ÑŒ\n1)Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð² Ð½Ð°Ñ‡Ð°Ð»Ð¾\n2)Ð”Ð¾Ð±Ð°Ð²Ð¸Ñ‚ÑŒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð² ÐºÐ¾Ð½ÐµÑ†\n3)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ Ð´Ð»Ð¸Ð½Ñƒ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚Ð¸\n4)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ Ð¿ÐµÑ€Ð²Ñ‹Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚\n5)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ Ð¿Ð¾ÑÐ»ÐµÐ´Ð½Ð¸Ð¹ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚\n6)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð¿Ð¾ Ð½Ð¾Ð¼ÐµÑ€Ñƒ\n7)Ð’ÑÑ‚Ð°Ð²Ð¸Ñ‚ÑŒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚ Ð½Ð° i Ð¿Ð¾Ð·Ð¸Ñ†Ð¸ÑŽ\n8)Ð£Ð´Ð°Ð»Ð¸Ñ‚ÑŒ ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚\n9)Ð’Ñ‹Ð´ÐµÐ»Ð¸Ñ‚ÑŒ Ð¿Ð¾Ð´Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒ\n10)Ð’Ñ‹Ð²ÐµÑÑ‚Ð¸ Ð¿Ð¾ÑÐ»ÐµÐ´Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒÐ½Ð¾ÑÑ‚ÑŒ\n11)Ð¡Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²Ð°Ñ‚ÑŒ Ð¼ÐµÑ‚Ð¾Ð´Ð¾Ð¼ Ð²ÑÑ‚Ð°Ð²Ð¾Ðº\n12)Ð‘Ñ‹ÑÑ‚Ñ€Ð°Ñ ÑÐ¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²ÐºÐ°\n13)Ð¡Ð»ÑƒÑ‡Ð°Ð¹Ð½Ð°Ñ Ð³ÐµÐ½ÐµÑ€Ð°Ñ†Ð¸Ñ Ñ‡Ð¸ÑÐµÐ»\n14)Ð—Ð°Ð²ÐµÑ€ÑˆÐ¸Ñ‚ÑŒ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ñƒ\n";
+		cin >> c;
+		switch(c){
+		case 1:
+			cout << "Enter element\n";
+			cin >> d;
+			a.Prepend(d);
+			break;
+		case 2:
+			cout << "Enter element\n";
+			cin >> d;
+			a.Append(d);
+			break;
+		case 3:
+			cout << a.GetLength() << "\n";
+			break;
+		case 4:
+			cout << a.GetFirst() << "\n";
+			break;
+		case 5:
+			cout << a.GetLast() << "\n";
+			break;
+		case 6:
+			cout << "Enter index\n";
+			cin >> d;
+			cout << a.Get(d) << "\n";
+			break;
+		case 7:
+			cout << "Enter index\n";
+			cin >> d;
+			cout << "Enter element\n";
+			cin >> f;
+			a.InsertAt(d,f);
+			break;
+		case 8:
+			cout << "Enter element\n";
+			cin >> d;
+			a.Remove(d);
+			break;
+		case 9:
+			cout << "Enter start index\n";
+			cin >> d;
+			cout << "Enter end index\n";
+			cin >> f;
+			a.GetSubsequence(d,f);
+			break;
+		case 10:
+			a.print();
+			break;
+		case 11:
+			t=clock();
+			a.InsertionSort();
+			cout << "Ð’Ñ€ÐµÐ¼Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð°Ð»Ð³Ð¾Ñ€Ð¸Ñ‚Ð¼Ð° " << (clock()-t)/1000 << "c\n";
+			break;
+		case 12:
+			t=clock();
+			a.QuickSort();
+			cout << "Ð’Ñ€ÐµÐ¼Ñ Ñ€Ð°Ð±Ð¾Ñ‚Ñ‹ Ð°Ð»Ð³Ð¾Ñ€Ð¸Ñ‚Ð¼Ð° " << (clock()-t)/1000 << "c\n";
+			break;
+		case 13:
+		  cout << "Enter number of elements\n";
+			cin >> d;
+			a.Random(d);
+			break;
+		}
+	}while (c<14);
+		if(e==2)Test(&a);
+	break;
+	}
+	return 0;
 }
